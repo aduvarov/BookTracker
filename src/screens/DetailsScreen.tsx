@@ -1,4 +1,5 @@
 import { StyleSheet, View, Text } from 'react-native'
+import { BookContext } from '../context/BookContext'
 
 export default function DetailsScreen({ route }) {
     const { book } = route.params

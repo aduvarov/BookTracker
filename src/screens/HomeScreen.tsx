@@ -1,23 +1,32 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
-
-// Временные данные для нашего списка
-const BOOKS = [
-    { id: '1', title: '1984', author: 'Джордж Оруэлл' },
-    { id: '2', title: 'Мастер и Маргарита', author: 'Михаил Булгаков' },
-    { id: '3', title: 'Дюна', author: 'Фрэнк Герберт' },
-]
+// Импортируем сам контекст
+import { BookContext } from '../context/BookContext'
 
 export default function HomeScreen({ navigation }: any) {
+    // Подключаемся к контексту
+    const context = useContext(BookContext)
+
+    // Страховка для TypeScript: если контекст еще не инициализировался
+    if (!context) {
+        return (
+            <View style={styles.container}>
+                <Text>Загрузка...</Text>
+            </View>
+        )
+    }
+
+    // Достаем актуальный список книг
+    const { books } = context
+
     return (
         <View style={styles.container}>
             <FlatList
-                data={BOOKS}
+                data={books} // Передаем данные из глобального состояния
                 keyExtractor={item => item.id}
                 renderItem={({ item }) => (
                     <TouchableOpacity
                         style={styles.bookCard}
-                        // Передаем объект книги как второй параметр в navigate
                         onPress={() => navigation.navigate('Details', { book: item })}>
                         <Text style={styles.bookTitle}>{item.title}</Text>
                         <Text style={styles.bookAuthor}>{item.author}</Text>
@@ -35,7 +44,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         marginBottom: 10,
         borderRadius: 8,
-        elevation: 2, // Тень для Android
+        elevation: 2,
     },
     bookTitle: { fontSize: 18, fontWeight: 'bold' },
     bookAuthor: { fontSize: 14, color: 'gray', marginTop: 5 },

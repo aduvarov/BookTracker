@@ -1,26 +1,28 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native'
+// Импортируем контекст
+import { BookContext } from '../context/BookContext'
 
 export default function AddScreen({ navigation }: any) {
-    // Создаем локальное состояние для полей ввода
     const [title, setTitle] = useState('')
     const [author, setAuthor] = useState('')
 
+    // Подключаемся к контексту
+    const context = useContext(BookContext)
+
     const handleAddBook = () => {
-        // Простая валидация: проверяем, что поля не пустые
         if (!title.trim() || !author.trim()) {
             Alert.alert('Ошибка', 'Пожалуйста, заполните все поля')
             return
         }
 
-        // Пока просто выводим данные в консоль
-        console.log('Новая книга:', { title, author })
+        // Вызываем функцию из контекста, передавая ей данные из формы
+        if (context) {
+            context.addBook(title, author)
+        }
 
-        // Очищаем форму
         setTitle('')
         setAuthor('')
-
-        // Программно переключаем пользователя обратно на вкладку со списком
         navigation.navigate('HomeTab')
     }
 
@@ -30,7 +32,7 @@ export default function AddScreen({ navigation }: any) {
             <TextInput
                 style={styles.input}
                 value={title}
-                onChangeText={setTitle} // Автоматически обновляет состояние title при вводе
+                onChangeText={setTitle}
                 placeholder="Например: Властелин колец"
             />
 
