@@ -1,13 +1,11 @@
 import React, { useContext } from 'react'
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
-// Импортируем сам контекст
+// Добавили импорт Alert
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native'
 import { BookContext } from '../context/BookContext'
 
 export default function HomeScreen({ navigation }: any) {
-    // Подключаемся к контексту
     const context = useContext(BookContext)
 
-    // Страховка для TypeScript: если контекст еще не инициализировался
     if (!context) {
         return (
             <View style={styles.container}>
@@ -16,18 +14,29 @@ export default function HomeScreen({ navigation }: any) {
         )
     }
 
-    // Достаем актуальный список книг
-    const { books } = context
+    // Достаем не только books, но и функцию deleteBook
+    const { books, deleteBook } = context
+
+    // Функция для вызова окна подтверждения
+    const confirmDelete = (id: string, title: string) => {
+        Alert.alert('Удаление книги', `Вы уверены, что хотите удалить "${title}"?`, [
+            { text: 'Отмена', style: 'cancel' },
+            // Если нажали "Удалить", вызываем функцию из глобального хранилища
+            { text: 'Удалить', style: 'destructive', onPress: () => deleteBook(id) },
+        ])
+    }
 
     return (
         <View style={styles.container}>
             <FlatList
-                data={books} // Передаем данные из глобального состояния
+                data={books}
                 keyExtractor={item => item.id}
                 renderItem={({ item }) => (
                     <TouchableOpacity
                         style={styles.bookCard}
-                        onPress={() => navigation.navigate('Details', { book: item })}>
+                        onPress={() => navigation.navigate('Details', { book: item })}
+                        // Добавляем обработчик долгого нажатия
+                        onLongPress={() => confirmDelete(item.id, item.title)}>
                         <Text style={styles.bookTitle}>{item.title}</Text>
                         <Text style={styles.bookAuthor}>{item.author}</Text>
                     </TouchableOpacity>
@@ -38,6 +47,7 @@ export default function HomeScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+    // ... стили остаются без изменений
     container: { flex: 1, padding: 20, backgroundColor: '#f5f5f5' },
     bookCard: {
         padding: 15,

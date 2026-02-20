@@ -10,6 +10,7 @@ export type Book = {
 type BookContextType = {
     books: Book[]
     addBook: (title: string, author: string) => void
+    deleteBook: (id: string) => void // <-- Добавили новую функцию
 }
 
 export const BookContext = createContext<BookContextType | undefined>(undefined)
@@ -53,5 +54,24 @@ export const BookProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }
 
-    return <BookContext.Provider value={{ books, addBook }}>{children}</BookContext.Provider>
+    // Функция удаления книги
+    const deleteBook = async (id: string) => {
+        // Оставляем только те книги, чей id НЕ совпадает с переданным
+        const updatedBooks = books.filter(book => book.id !== id)
+
+        setBooks(updatedBooks) // Обновляем экран
+
+        // Перезаписываем постоянную память
+        try {
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedBooks))
+        } catch (error) {
+            console.error('Ошибка сохранения после удаления:', error)
+        }
+    }
+
+    return (
+        <BookContext.Provider value={{ books, addBook, deleteBook }}>
+            {children}
+        </BookContext.Provider>
+    )
 }
