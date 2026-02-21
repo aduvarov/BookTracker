@@ -10,20 +10,43 @@ export default function AddScreen({ navigation }: any) {
     // Подключаемся к контексту
     const context = useContext(BookContext)
 
-    const handleAddBook = () => {
-        if (!title.trim() || !author.trim()) {
-            Alert.alert('Ошибка', 'Пожалуйста, заполните все поля')
+    const handleAddBook = async () => {
+        if (!title.trim()) {
+            Alert.alert('Ошибка', 'Пожалуйста, введите название книги для поиска')
             return
         }
 
-        // Вызываем функцию из контекста, передавая ей данные из формы
-        if (context) {
-            context.addBook(title, author)
-        }
+        try {
+            // 1. Отправляем запрос к API Google Books 🌐
+            const response = await fetch('https://www.googleapis.com/books/v1/volumes?q=' + title)
 
-        setTitle('')
-        setAuthor('')
-        navigation.navigate('HomeTab')
+            // 2. Распаковываем ответ в JSON 📦
+            const data = await response.json()
+
+            // 3. Проверяем, нашлась ли хотя бы одна книга
+            if (data.items && data.items.length > 0) {
+                // Берем самую первую книгу из списка результатов
+                const firstBook = data.items[0].volumeInfo
+
+                // Достаем название и первого автора (если автор не указан, ставим заглушку)
+                const foundTitle = firstBook.title
+                const foundAuthor = firstBook.authors ? firstBook.authors[0] : 'Неизвестный автор'
+
+                // 4. Передаем найденные данные в наше глобальное хранилище 💾
+                if (context) {
+                    context.addBook(foundTitle, foundAuthor)
+                }
+
+                setTitle('')
+                setAuthor('') // Очищаем на всякий случай
+                navigation.navigate('HomeTab')
+            } else {
+                Alert.alert('Упс!', 'Мы не смогли найти такую книгу в базе Google.')
+            }
+        } catch (error) {
+            console.error(error)
+            Alert.alert('Ошибка сети', 'Не удалось подключиться к интернету.')
+        }
     }
 
     return (
